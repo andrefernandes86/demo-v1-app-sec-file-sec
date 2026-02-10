@@ -102,6 +102,8 @@ docker compose --profile test run --rm test
 ```
 
 ### Standalone Docker Run
+
+#### Option 1: Build from Source
 ```bash
 docker build -t trendai-app .
 docker run -d -p 8000:8000 \
@@ -109,6 +111,13 @@ docker run -d -p 8000:8000 \
   -e OLLAMA_MODEL=llama3.2 \
   trendai-app
 ```
+
+#### Option 2: Use Pre-built Image from Docker Hub
+```bash
+docker run -d -p 8000:8000 --name trendai andrefernandes86/tools-ai-sec-demo
+```
+
+Then configure via the UI at http://localhost:8000
 
 ## Architecture
 
