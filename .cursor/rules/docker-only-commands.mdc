@@ -1,0 +1,22 @@
+---
+description: Only Docker-related commands may be executed in the terminal
+alwaysApply: true
+---
+
+# Allowed Terminal Commands
+
+**Only execute Docker-related commands** in this project. No other commands on the host.
+
+## Allowed
+
+- `docker`
+- `docker compose` (or `docker-compose`)
+- `docker run`, `docker build`, `docker ps`, etc.
+
+## Not allowed on the host
+
+- `python`, `python3`, `pip`, `pytest`
+- `npm`, `node`, `yarn`
+- Any other non-Docker shell commands
+
+Run the app and tests inside containers (e.g. `docker compose up`, `docker compose --profile test run --rm test`). Do not run Python, pip, or tests directly on the machine where Cursor is running.
