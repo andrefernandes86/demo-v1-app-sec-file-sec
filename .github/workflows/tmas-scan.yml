@@ -24,19 +24,19 @@ jobs:
 
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
-
-        # 👇 THIS is the key line you were missing
         continue-on-error: true
-
         with:
           artifact: .
           path: .
           vulnerabilitiesScan: true
           malwareScan: true
           secretsScan: true
-
-          # Allow scan to complete even with findings
-          additionalArgs: --exit-code=0
-
           tmasApiKey: ${{ secrets.TMAS_API_KEY }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload TMAS scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmas-scan-report
+          path: scan-report.md
