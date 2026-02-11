@@ -25,10 +25,9 @@ jobs:
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
           vulnerabilitiesScan: true
           malwareScan: true
           secretsScan: true
-        env:
-          TMAS_API_KEY: ${{ secrets.TMAS_API_KEY }}
+          tmasApiKey: ${{ secrets.TMAS_API_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
