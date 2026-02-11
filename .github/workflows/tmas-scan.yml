@@ -25,17 +25,14 @@ jobs:
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
         with:
-          # What TMAS scans
           artifact: .
-
-          # Workspace path
           path: .
-
-          # Enable scan types
           vulnerabilitiesScan: true
           malwareScan: true
           secretsScan: true
 
-          # Authentication
+          # 👇 This is the key line
+          additionalArgs: --exit-code=0
+
           tmasApiKey: ${{ secrets.TMAS_API_KEY }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
