@@ -24,10 +24,15 @@ jobs:
 
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
+
+        # This is REQUIRED if you do not want findings to fail the job
         continue-on-error: true
+
         with:
-          # Source to scan
+          # REQUIRED: what TMAS scans
           artifact: .
+
+          # OPTIONAL but recommended
           path: .
 
           # Scan types
@@ -35,16 +40,6 @@ jobs:
           malwareScan: true
           secretsScan: true
 
-          # Force report creation
-          additionalArgs: --output=markdown=scan-report.md
-
-          # Authentication
+          # Auth (ONLY supported method)
           tmasApiKey: ${{ secrets.TMAS_API_KEY }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload TMAS scan report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: tmas-scan-report
-          path: scan-report.md
