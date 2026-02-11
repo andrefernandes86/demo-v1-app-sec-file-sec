@@ -1,0 +1,26 @@
+name: Trend Micro App Sec Scan
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  tmas-scan:
+    name: TMAS Code Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trend Micro TMAS Scan
+        uses: trendmicro/tmas-scan-action@v1
+        with:
+          path: .
+          fail-on-findings: true
+        env:
+          TMAS_API_KEY: ${{ secrets.TMAS_API_KEY }}
