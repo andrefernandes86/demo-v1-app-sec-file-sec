@@ -1,0 +1,82 @@
+name: Trend Micro TMAS Repo Scan with Summary
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+env:
+  SECURITY_MODE: log   # log | protect
+
+jobs:
+  tmas-repo-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install TMAS CLI
+        run: |
+          curl -L https://cli.artifactscan.cloudone.trendmicro.com/tmas-cli/latest/tmas-cli_Linux_x86_64.tar.gz | tar xz
+          chmod +x tmas
+          sudo mv tmas /usr/local/bin/tmas
+
+      - name: Set TMAS API key
+        run: echo "TMAS_API_KEY=${{ secrets.TMAS_API_KEY }}" >> $GITHUB_ENV
+
+      - name: Run TMAS repository scan (JSON output)
+        run: |
+          tmas scan . \
+            --vulnerabilities \
+            --malware \
+            --secrets \
+            > tmas-scan-results.json || true
+
+      - name: Parse results and create summary
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          echo "## 🔐 Trend Micro Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+
+          # ---------- Vulnerabilities ----------
+          CRITICAL=$(jq '.vulnerabilities.criticalCount // 0' tmas-scan-results.json)
+          HIGH=$(jq '.vulnerabilities.highCount // 0' tmas-scan-results.json)
+          MEDIUM=$(jq '.vulnerabilities.mediumCount // 0' tmas-scan-results.json)
+          LOW=$(jq '.vulnerabilities.lowCount // 0' tmas-scan-results.json)
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧨 Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+          echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+
+          # ---------- Malware ----------
+          MALWARE_STATUS=$(jq '.malware.scanResult // 0' tmas-scan-results.json)
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🦠 Malware" >> $GITHUB_STEP_SUMMARY
+          if [ "$MALWARE_STATUS" -eq 0 ]; then
+            echo "- Status: ✅ Clean" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Status: ❌ Malware detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # ---------- Secrets ----------
+          SECRETS=$(jq '.secrets.unmitigatedFindingsCount // 0' tmas-scan-results.json)
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔑 Secrets" >> $GITHUB_STEP_SUMMARY
+          echo "- Unmitigated secrets found: $SECRETS" >> $GITHUB_STEP_SUMMARY
+
+          # ---------- Enforcement ----------
+          if [ "$SECURITY_MODE" = "protect" ] && \
+             ( [ "$CRITICAL" -gt 0 ] || [ "$MALWARE_STATUS" -ne 0 ] || [ "$SECRETS" -gt 0 ] ); then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Pipeline failed due to security findings (PROTECT mode)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
