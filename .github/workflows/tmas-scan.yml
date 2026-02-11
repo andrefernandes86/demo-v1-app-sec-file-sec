@@ -1,22 +1,50 @@
-- name: Run Trend Micro TMAS Scan
-  uses: trendmicro/tmas-scan-action@main
-  continue-on-error: true
-  with:
-    artifact: .
-    path: .
-    vulnerabilitiesScan: true
-    malwareScan: true
-    secretsScan: true
+name: Trend Micro App Sec Scan
 
-    # 👇 Force report creation
-    additionalArgs: --output=markdown=scan-report.md
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
 
-    tmasApiKey: ${{ secrets.TMAS_API_KEY }}
-    githubToken: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  tmas-scan:
+    name: TMAS Code Scan
+    runs-on: ubuntu-latest
 
-- name: Upload TMAS scan report
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: tmas-scan-report
-    path: scan-report.md
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trend Micro TMAS Scan
+        uses: trendmicro/tmas-scan-action@main
+        continue-on-error: true
+        with:
+          # Source to scan
+          artifact: .
+          path: .
+
+          # Scan types
+          vulnerabilitiesScan: true
+          malwareScan: true
+          secretsScan: true
+
+          # Force report creation
+          additionalArgs: --output=markdown=scan-report.md
+
+          # Authentication
+          tmasApiKey: ${{ secrets.TMAS_API_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload TMAS scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmas-scan-report
+          path: scan-report.md
