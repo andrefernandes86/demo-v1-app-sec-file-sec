@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trend Micro TMAS Scan
-        uses: trendmicro/tmas-scan-action@v1
+        uses: trendmicro/tmas-scan-action@main
         with:
           path: .
           fail-on-findings: true
