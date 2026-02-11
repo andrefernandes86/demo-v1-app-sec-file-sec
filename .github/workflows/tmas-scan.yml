@@ -13,6 +13,11 @@ jobs:
     name: TMAS Code Scan
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,7 +25,10 @@ jobs:
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: .
-          fail-on-findings: true
+          vulnerabilitiesScan: true
+          malwareScan: true
+          secretsScan: true
         env:
           TMAS_API_KEY: ${{ secrets.TMAS_API_KEY }}
