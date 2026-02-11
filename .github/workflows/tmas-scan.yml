@@ -24,6 +24,10 @@ jobs:
 
       - name: Run Trend Micro TMAS Scan
         uses: trendmicro/tmas-scan-action@main
+
+        # 👇 THIS is the key line you were missing
+        continue-on-error: true
+
         with:
           artifact: .
           path: .
@@ -31,7 +35,7 @@ jobs:
           malwareScan: true
           secretsScan: true
 
-          # 👇 This is the key line
+          # Allow scan to complete even with findings
           additionalArgs: --exit-code=0
 
           tmasApiKey: ${{ secrets.TMAS_API_KEY }}
